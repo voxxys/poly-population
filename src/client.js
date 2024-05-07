@@ -1,4 +1,4 @@
-const API_GUID = "93BC6341-B35E-4B34-9DFE-26796F64BBB7";
+export const API_GUID = "93BC6341-B35E-4B34-9DFE-26796F64BBB7";
 const API_URL = "https://gis01.rumap.ru/4898/areaStatistics";
 
 export const getAreaStats = async (polygon) => {
