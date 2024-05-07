@@ -1,47 +1,97 @@
-import { useEffect, useState } from "react";
-import { Polygon, Tooltip } from "react-leaflet";
-import { getAreaStats } from "../client";
-
-const examplePol = [
-  [
-    [37.513675689697266, 56.34542024730709],
-    [37.53702163696288, 56.34551537930329],
-    [37.53547668457031, 56.33504943733644],
-    [37.51230239868164, 56.331909094890676],
-    [37.513675689697266, 56.34542024730709],
-  ],
-];
-
-const polygon = [
-  [55.702868, 37.530865],
-  [55.702868, 37.65],
-  [55.79, 37.530865],
-  [55.702868, 37.530865],
-];
-
-const invertLatLng = (polygon) => polygon.map((item) => [item[1], item[0]]);
+import { useCallback, useMemo, useRef, useState } from "react";
+import { SavedPolyOverlay } from "./SavedPolyOverlay";
+import { FeatureGroup, TileLayer, useMap } from "react-leaflet";
+import { EditControl } from "react-leaflet-draw";
 
 export const MapOverlay = () => {
-  const [popLabel, setPopLabel] = useState(null);
+  const editRef = useRef();
+  const map = useMap();
+  const [savedPolygon, setSavedPolygon] = useState([]);
+  const polygonExists = savedPolygon.length > 0;
 
-  useEffect(() => {
-    getAreaStats([invertLatLng(polygon)]).then((population) =>
-      setPopLabel(population)
-    );
+  const handleCreate = useCallback((e) => {
+    setSavedPolygon(...e.layer.getLatLngs());
   }, []);
 
-  // const polyRef = useRef();
-  // const polCentre = polyRef.current?.getCenter() ?? [0, 0];
+  const handleEditStart = (e) => {
+    setSavedPolygon([]);
+    // if (polygonExists) {
+    //   editRef.current._toolbars.draw._modes.polygon.handler.disable();
+    //   console.log("!!!!!");
+    // }
+  };
+
+  const handleEditStop = (e) => {
+    // setSavedPolygon([]);
+
+    for (let i in e.target._layers) {
+      if (e.target._layers[i]?._latlngs) {
+        setSavedPolygon(...e.target._layers[i]?._latlngs);
+      }
+    }
+  };
+
+  const handleDrawStart = () => {
+    map.eachLayer((layer) => {
+      if (typeof layer._latlngs !== "undefined" && layer._latlngs.length > 0) {
+        layer.remove();
+      }
+    });
+    setSavedPolygon([]);
+  };
+
+  const handleDelete = () => {
+    setSavedPolygon([]);
+    map.eachLayer((layer) => {
+      if (typeof layer._latlngs !== "undefined" && layer._latlngs.length > 0) {
+        layer.remove();
+      }
+    });
+  };
 
   return (
     <>
-      <Polygon color="purple" positions={polygon}>
-        <Tooltip direction="right" offset={[0, 0]} opacity={1} permanent>
-          {`Население: ${popLabel ?? "?"}`}
-          {/* <br></br> */}
-          {/* <button onClick={null}>Удалить</button> */}
-        </Tooltip>
-      </Polygon>
+      <SavedPolyOverlay
+        savedPolygon={savedPolygon}
+        setSavedPolygon={setSavedPolygon}
+      />
+      <FeatureGroup>
+        <EditControl
+          position="topleft"
+          draw={{
+            rectangle: false,
+            polyline: false,
+            circle: false,
+            circlemarker: false,
+            marker: false,
+            polygon: true,
+          }}
+          edit={{
+            edit: true,
+            remove: true,
+          }}
+          onCreated={handleCreate}
+          onMounted={(e) => {
+            editRef.current = e;
+
+            const but = document.querySelector(".leaflet-draw-edit-remove");
+
+            but.removeAttribute("title");
+            but.addEventListener("click", function (e) {
+              editRef.current._toolbars.edit._modes.remove.handler.disable();
+            });
+          }}
+          onDrawStart={handleDrawStart}
+          onEditStart={handleEditStart}
+          onEditStop={handleEditStop}
+          onDeleteStart={() => {
+            handleDelete();
+            editRef.current._toolbars.edit._modes.remove.handler.disable();
+          }}
+        />
+      </FeatureGroup>
+
+      <TileLayer url={"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"} />
     </>
   );
 };

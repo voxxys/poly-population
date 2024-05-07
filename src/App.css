@@ -1,4 +1,5 @@
 @import url("~leaflet/dist/leaflet.css");
+@import url("~leaflet-draw/dist/leaflet.draw.css");
 
 body,
 #root,
@@ -7,17 +8,30 @@ body,
   width: 100vw;
 }
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.leaflet-draw-tooltip-visible {
+  visibility: hidden;
 }
 
-.leaflet-popup-tip {
+.leaflet-draw-tooltip-visible:before {
+  left: -1px;
+}
+
+/* .leaflet-draw-section {
   display: none;
 }
 
-.leaflet-div-icon {
-  background: transparent;
-  border: none;
+.leaflet-draw-toolbar {
+  display: none;
+} */
+
+.leaflet-popup-pane {
+  display: none;
+}
+
+div.leaflet-draw-section > .leaflet-draw-actions:first-child {
+  display: none !important;
+}
+
+a.leaflet-draw-edit-edit span {
+  display: none;
 }

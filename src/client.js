@@ -26,14 +26,6 @@ export const getAreaStats = async (polygon) => {
     redirect: "follow",
   };
 
-  //   fetch(
-  //     "http://gis01.rumap.ru/4898/areaStatistics?guid=93BC6341-B35E-4B34-9DFE-26796F64BBB7",
-  //     requestOptions
-  //   )
-  //     .then((response) => response.text())
-  //     .then((result) => console.log(result))
-  //     .catch((error) => console.error(error));
-
   const res = await fetch(`${API_URL}?guid=${API_GUID}`, requestOptions);
 
   if (res.ok) {
